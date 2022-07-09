@@ -44,8 +44,12 @@ contract('LOP', async function (accounts) {
     
     it('should not swap with bad signature', async function(){
         this.collection = await NFTCollection.new();
-        this.firstNFT = await this.collection.mintNFT("Test NFT", "test.uri.domain.io");
+        this.firstNFT = await this.collection.mintNFT("Test NFT", "test.uri.domain.io", { from: addr1 });
         console.log(this.collection);
+
+        /* approve NFT */
+        await this.collection.approve(this.swap.address, 0, { from: addr1 })
+
         const order = buildOrder(
                 {
                     NFTAddress: this.collection.address,
@@ -66,7 +70,7 @@ contract('LOP', async function (accounts) {
                 },
             );
 
-            await this.swap.fillOrderNFTnoSwap(sentOrder, signature, '0x');
+            await this.swap.fillOrderNFTnoSwap(sentOrder, signature, '0x',{ from: addr0 });
             
         });
     

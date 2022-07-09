@@ -183,14 +183,14 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
         // Maker => Taker
         require(nftCollection.transferNFTFrom(order.maker,msg.sender,  order.NFTID));
         
-
         // Taker => Maker
         if (!_callTransferFrom(
                 order.takerAsset,
                 msg.sender,
-                order.receiver == address(0) ? order.maker : order.receiver,
+                order.maker,
                 order.takingAmount
             )) revert TransferFromTakerToMakerFailed();
+        
         
 
         // CONFIRMATION EVENT REMOVED
@@ -206,10 +206,6 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
      */
 
 
-
-    function _callTransferNFTFrom(address asset, address from, address to, uint256 tokenID) private returns(bool success) {
-        IERC721(asset).transferFrom(from, to, tokenID);
-    }
 
 
 
