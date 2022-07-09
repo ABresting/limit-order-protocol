@@ -162,7 +162,7 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
         if (order.allowedSender != address(0) && order.allowedSender != msg.sender) revert PrivateOrder();
         if (remainingMakerAmount == _ORDER_DOES_NOT_EXIST) {
             // First fill: validate order and permit maker asset
-            if (!ECDSA.recoverOrIsValidSignature(order.seller, orderHash, signature)) revert BadSignature();
+            
             remainingMakerAmount = 1;
 
             //PERMIT DATA REMOVED
@@ -181,23 +181,17 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
         // Compute maker and taker assets amount
 
         // Maker => Taker
-        require(nftCollection.transferNFTFrom(order.seller,msg.sender,  order.tokenID));
+        require(nftCollection.transferNFTFrom(order.maker,msg.sender,  order.NFTID));
         
 
         // Taker => Maker
-        if (order.offerAsset == address(_WETH) && msg.value > 0) {
-            if (msg.value != order.offerAmount) revert InvalidMsgValue();
-            _WETH.deposit{ value: order.offerAmount }();
-            _WETH.transfer(order.receiver == address(0) ? order.seller : order.receiver, order.offerAmount);
-        } else {
-            if (msg.value != 0) revert InvalidMsgValue();
-            if (!_callTransferFrom(
-                order.offerAsset,
+        if (!_callTransferFrom(
+                order.takerAsset,
                 msg.sender,
-                order.receiver == address(0) ? order.seller : order.receiver,
-                order.offerAmount
+                order.receiver == address(0) ? order.maker : order.receiver,
+                order.takingAmount
             )) revert TransferFromTakerToMakerFailed();
-        }
+        
 
         // CONFIRMATION EVENT REMOVED
         

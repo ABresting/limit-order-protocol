@@ -29,16 +29,22 @@ library OrderLib {
     struct NFTOrder {
         uint256 salt;
         address NFTAddress;
-        uint256 tokenID;
-        address offerAsset;
-        address seller;
+        address takerAsset;
+        address maker;
         address receiver;
         address allowedSender;  // equals to Zero address on public orders
-        uint256 offerAmount;
+        uint256 NFTID;
+        uint256 takingAmount;
         uint256 offsets;
-        
+        // bytes makerAssetData;
+        // bytes takerAssetData;
+        // bytes getMakingAmount; // this.staticcall(abi.encodePacked(bytes, swapTakerAmount)) => (swapMakerAmount)
+        // bytes getTakingAmount; // this.staticcall(abi.encodePacked(bytes, swapMakerAmount)) => (swapTakerAmount)
+        // bytes predicate;       // this.staticcall(bytes) => (bool)
+        // bytes permit;          // On first fill: permit.1.call(abi.encodePacked(permit.selector, permit.2))
+        // bytes preInteraction;
+        // bytes postInteraction;
         bytes interactions; // concat(makerAssetData, takerAssetData, getMakingAmount, getTakingAmount, predicate, permit, preIntercation, postInteraction)
-        bytes predicate;       // this.staticcall(bytes) => (bool)
     }
 
     bytes32 constant internal _LIMIT_ORDER_TYPEHASH = keccak256(
