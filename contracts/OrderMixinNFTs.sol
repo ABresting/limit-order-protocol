@@ -155,8 +155,6 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
         OrderLib.NFTOrder calldata order = order_; // Helps with "Stack too deep"
         
        
-        NFTCollection nftCollection = NFTCollection(order.NFTAddress);
-
         uint256 remainingMakerAmount = _remaining[orderHash];
         if (remainingMakerAmount == _ORDER_FILLED) revert RemainingAmountIsZero();
         if (order.allowedSender != address(0) && order.allowedSender != msg.sender) revert PrivateOrder();

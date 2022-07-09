@@ -6,7 +6,7 @@ import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/draft-EIP712.
 import "@1inch/solidity-utils/contracts/OnlyWethReceiver.sol";
 import "./OrderMixinNFTs.sol";
 import "./OrderRFQMixin.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 
 /**
@@ -30,7 +30,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
  *
  * See [OrderRFQMixin](OrderRFQMixin.sol) for more details.
  */
-abstract contract LimitOrderProtocol is
+contract LimitOrderProtocol is
     EIP712("1inch Limit Order Protocol", "3"),
     OrderMixinNFTs,
     OnlyWethReceiver
@@ -43,4 +43,12 @@ abstract contract LimitOrderProtocol is
     function DOMAIN_SEPARATOR() external view returns(bytes32) {
         return _domainSeparatorV4();
     }
+
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external returns (bytes4){}
+
 }

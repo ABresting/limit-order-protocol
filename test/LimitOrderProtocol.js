@@ -13,20 +13,22 @@ const NFTCollection = artifacts.require('NFTCollection');
 
 
 
-describe('LimitOrderProtocol', async () => {
-    const [addr0, addr1] = [addr0Wallet.getAddressString(), addr1Wallet.getAddressString()];
-
-    before(async () => {
-        this.chainId = await web3.eth.getChainId();
-    });
+contract('LOP', async function (accounts) {
     
-    it('mint bits', async function () {
+    const [addr0, addr1] = [addr0Wallet.getAddressString(), addr1Wallet.getAddressString()];
+    
+    it('generate NFT collection', async function () {
+        bigdog = await NFTCollection.new();
+        this.collection = await bigdog.mintNFT("Test NFT", "test.uri.domain.io");
+        console.log(this.collection);
+    })
+
+    it('mint bits', async function (){
         this.dai = await TokenMock.new('DAI', 'DAI');
         this.weth = await WrappedTokenMock.new('WETH', 'WETH');
 
         this.swap = await LimitOrderProtocol.new(this.weth.address);
 
-        
         await this.dai.mint(addr0, '1000000');
         await this.dai.mint(addr1, '1000000');
         await this.weth.deposit({ from: addr0, value: '1000000' });
@@ -36,13 +38,8 @@ describe('LimitOrderProtocol', async () => {
         await this.weth.approve(this.swap.address, '1000000');
         await this.dai.approve(this.swap.address, '1000000', { from: addr1 });
         await this.weth.approve(this.swap.address, '1000000', { from: addr1 });
-    });
-    
-    
-    it('generate NFT collection', async function () {
-        NFTCollection = await NFTCollection.deploy();
-        this.collection = await NFTCollection.mintNFT("Test NFT", "test.uri.domain.io");
-        console.log(this.collection);
+
+
     })
     
     
