@@ -4,15 +4,16 @@ pragma solidity 0.8.15;
 
 import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@1inch/solidity-utils/contracts/interfaces/IWETH.sol";
 import "@1inch/solidity-utils/contracts/libraries/SafeERC20.sol";
 import "@1inch/solidity-utils/contracts/libraries/ECDSA.sol";
 
+import "./NFTCollection.sol";
+
 import "./helpers/AmountCalculator.sol";
 import "./helpers/NonceManager.sol";
 import "./helpers/PredicateHelper.sol";
-import "./interfaces/IOrderMixin.sol";
 import "./interfaces/NotificationReceiver.sol";
 import "./libraries/ArgumentsDecoder.sol";
 import "./libraries/Callib.sol";
@@ -20,11 +21,10 @@ import "./libraries/Errors.sol";
 import "./OrderLib.sol";
 
 /// @title Regular Limit Order mixin
-abstract contract OrderMixin is IOrderMixin, EIP712, AmountCalculator, NonceManager, PredicateHelper, IERC721 {
+abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, PredicateHelper, IERC721Receiver{
     using Callib for address;
     using SafeERC20 for IERC20;
     using ArgumentsDecoder for bytes;
-    using OrderLib for OrderLib.Order;
     using OrderLib for OrderLib.NFTOrder;
 
     error UnknownOrder();
@@ -115,15 +115,7 @@ abstract contract OrderMixin is IOrderMixin, EIP712, AmountCalculator, NonceMana
     /**
      * @notice See {IOrderMixin-cancelOrder}.
      */
-    function cancelOrder(OrderLib.Order calldata order) external returns(uint256 orderRemaining, bytes32 orderHash) {
-        if (order.maker != msg.sender) revert AccessDenied();
 
-        orderHash = hashOrder(order);
-        orderRemaining = _remaining[orderHash];
-        if (orderRemaining == _ORDER_FILLED) revert AlreadyFilled();
-        emit OrderCanceled(msg.sender, orderHash, orderRemaining);
-        _remaining[orderHash] = _ORDER_FILLED;
-    }
 
     /**
      * @notice See {IOrderMixin-fillOrder}.
@@ -162,6 +154,8 @@ abstract contract OrderMixin is IOrderMixin, EIP712, AmountCalculator, NonceMana
 
         OrderLib.NFTOrder calldata order = order_; // Helps with "Stack too deep"
         
+       
+        NFTCollection nftCollection = NFTCollection(order.NFTAddress);
 
         uint256 remainingMakerAmount = _remaining[orderHash];
         if (remainingMakerAmount == _ORDER_FILLED) revert RemainingAmountIsZero();
@@ -187,12 +181,8 @@ abstract contract OrderMixin is IOrderMixin, EIP712, AmountCalculator, NonceMana
         // Compute maker and taker assets amount
 
         // Maker => Taker
-        if (!_callTransferNFTFrom(
-            order.NFTAddress,
-            order.seller,
-            target,
-            order.tokenID
-        )) revert TransferFromMakerToTakerFailed();
+        require(nftCollection.transferNFTFrom(order.seller,msg.sender,  order.tokenID));
+        
 
         // Taker => Maker
         if (order.offerAsset == address(_WETH) && msg.value > 0) {
@@ -220,17 +210,7 @@ abstract contract OrderMixin is IOrderMixin, EIP712, AmountCalculator, NonceMana
     /**
      * @notice See {IOrderMixin-checkPredicate}.
      */
-    function checkPredicate(OrderLib.Order calldata order) public view returns(bool) {
-        (bool success, uint256 res) = _selfStaticCall(order.predicate());
-        return success && res == 1;
-    }
 
-    /**
-     * @notice See {IOrderMixin-hashOrder}.
-     */
-    function hashOrder(OrderLib.Order calldata order) public view returns(bytes32) {
-        return order.hash(_domainSeparatorV4());
-    }
 
 
     function _callTransferNFTFrom(address asset, address from, address to, uint256 tokenID) private returns(bool success) {
