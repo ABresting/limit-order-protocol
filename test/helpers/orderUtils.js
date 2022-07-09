@@ -4,11 +4,11 @@ const { EIP712Domain } = require('./eip712');
 
 const OrderRFQ = [
     { name: 'info', type: 'uint256' },
-    { name: 'makerAsset', type: 'address' },
+    { name: 'NFTAddress', type: 'address' },
     { name: 'takerAsset', type: 'address' },
     { name: 'maker', type: 'address' },
     { name: 'allowedSender', type: 'address' },
-    { name: 'makingAmount', type: 'uint256' },
+    { name: 'NFTID', type: 'uint256' },
     { name: 'takingAmount', type: 'uint256' },
 ];
 
@@ -21,12 +21,12 @@ const ABIOrderRFQ = {
 
 const Order = [
     { name: 'salt', type: 'uint256' },
-    { name: 'makerAsset', type: 'address' },
+    { name: 'NFTAddress', type: 'address' },
     { name: 'takerAsset', type: 'address' },
     { name: 'maker', type: 'address' },
     { name: 'receiver', type: 'address' },
     { name: 'allowedSender', type: 'address' },
-    { name: 'makingAmount', type: 'uint256' },
+    { name: 'NFTID', type: 'uint256' },
     { name: 'takingAmount', type: 'uint256' },
     { name: 'offsets', type: 'uint256' },
     { name: 'interactions', type: 'bytes' },
@@ -44,9 +44,9 @@ const version = '3';
 
 function buildOrder (
     {
-        makerAsset,
+        NFTAddress,
         takerAsset,
-        makingAmount,
+        NFTID,
         takingAmount,
         allowedSender = constants.ZERO_ADDRESS,
         receiver = constants.ZERO_ADDRESS,
@@ -55,7 +55,7 @@ function buildOrder (
     {
         makerAssetData = '0x',
         takerAssetData = '0x',
-        getMakingAmount = '0x',
+        getNFTID = '0x',
         getTakingAmount = '0x',
         predicate = '0x',
         permit = '0x',
@@ -63,9 +63,6 @@ function buildOrder (
         postInteraction = '0x',
     } = {},
 ) {
-    if (getMakingAmount === '') {
-        getMakingAmount = '0x78'; // "x"
-    }
     if (getTakingAmount === '') {
         getTakingAmount = '0x78'; // "x"
     }
@@ -73,7 +70,7 @@ function buildOrder (
     const allInteractions = [
         makerAssetData,
         takerAssetData,
-        getMakingAmount,
+        getNFTID,
         getTakingAmount,
         predicate,
         permit,
@@ -92,12 +89,12 @@ function buildOrder (
 
     return {
         salt: '1',
-        makerAsset,
+        NFTAddress,
         takerAsset,
         maker,
         receiver,
         allowedSender,
-        makingAmount: makingAmount.toString(),
+        NFTID: NFTID.toString(),
         takingAmount: takingAmount.toString(),
         offsets: offsets.toString(),
         interactions,
@@ -106,20 +103,20 @@ function buildOrder (
 
 function buildOrderRFQ (
     info,
-    makerAsset,
+    NFTAddress,
     takerAsset,
-    makingAmount,
+    NFTID,
     takingAmount,
     from,
     allowedSender = constants.ZERO_ADDRESS,
 ) {
     return {
         info,
-        makerAsset,
+        NFTAddress,
         takerAsset,
         maker: from,
         allowedSender,
-        makingAmount,
+        NFTID,
         takingAmount,
     };
 }
@@ -166,8 +163,8 @@ function unwrapWeth (amount) {
     return toBN(amount).setn(252, 1).toString();
 }
 
-function makingAmount (amount) {
-    return toBN(amount).setn(255, 1).toString();
+function NFTID (NFTID) {
+    return toBN(NFTID).toString();
 }
 
 function takingAmount (amount) {
@@ -184,7 +181,7 @@ module.exports = {
     signOrder,
     signOrderRFQ,
     compactSignature,
-    makingAmount,
+    NFTID,
     takingAmount,
     unwrapWeth,
     name,

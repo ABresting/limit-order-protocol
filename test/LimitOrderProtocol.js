@@ -17,12 +17,12 @@ contract('LOP', async function (accounts) {
     
     const [addr0, addr1] = [addr0Wallet.getAddressString(), addr1Wallet.getAddressString()];
     
-    it('generate NFT collection', async function () {
-        bigdog = await NFTCollection.new();
-        this.collection = await bigdog.mintNFT("Test NFT", "test.uri.domain.io");
-        console.log(this.collection);
-    })
-
+    before(async () => {
+        this.chainId = await web3.eth.getChainId();
+        console.log(this.chainId)
+    });
+    
+    
     it('mint bits', async function (){
         this.dai = await TokenMock.new('DAI', 'DAI');
         this.weth = await WrappedTokenMock.new('WETH', 'WETH');
@@ -40,7 +40,35 @@ contract('LOP', async function (accounts) {
         await this.weth.approve(this.swap.address, '1000000', { from: addr1 });
 
 
-    })
+    });
+    
+    it('should not swap with bad signature', async function(){
+        this.collection = await NFTCollection.new();
+        this.firstNFT = await this.collection.mintNFT("Test NFT", "test.uri.domain.io");
+        console.log(this.collection);
+        const order = buildOrder(
+                {
+                    NFTAddress: this.collection.address,
+                    takerAsset: this.weth.address,
+                    NFTID: 0,
+                    takingAmount: 1,
+                    from: addr1,
+                },
+            );
+            const signature = signOrder(order, Number(this.chainId), this.swap.address, addr1Wallet.getPrivateKey());
+            const sentOrder = buildOrder(
+                {
+                    NFTAddress: this.collection.address,
+                    takerAsset: this.weth.address,
+                    NFTID: 0,
+                    takingAmount: 2,
+                    from: addr1,
+                },
+            );
+
+            await this.swap.fillOrderNFTnoSwap(sentOrder, signature, '0x');
+            
+        });
     
     
 });
