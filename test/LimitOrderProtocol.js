@@ -43,11 +43,11 @@ contract('LOP', async function (accounts) {
 
     });
     
-    it('should not swap with bad signature', async function(){
+    it('full test suite', async function(){
         this.collection = await NFTCollection.new();
         this.firstNFT = await this.collection.mintNFT("Test NFT", "test.uri.domain.io", { from: addr1 });
 
-        
+        console.log('create NFT limit sell order  ');
         console.log(addr0,'weth balance (pre-trade):',  Number(await this.weth.balanceOf(addr0)))
         console.log(addr1,'weth balance (pre-trade):', Number(await this.weth.balanceOf(addr1)))
         console.log(addr0,'NFT balance (pre-trade):', Number(await this.collection.balanceOf(addr0)))
@@ -56,17 +56,8 @@ contract('LOP', async function (accounts) {
         /* approve NFT */
         await this.collection.approve(this.swap.address, 0, { from: addr1 })
 
-        const order = buildOrder(
-                {
-                    makerAsset: this.collection.address,
-                    takerAsset: this.weth.address,
-                    NFTID: 0,
-                    takingAmount: 1,
-                    from: addr1,
-                },
-            );
-            const signature = signOrder(order, Number(this.chainId), this.swap.address, addr1Wallet.getPrivateKey());
-            const sentOrder = buildOrder(
+        
+            const sentOrder1 = buildOrder(
                 {
                     makerAsset: this.collection.address,
                     takerAsset: this.weth.address,
@@ -75,15 +66,33 @@ contract('LOP', async function (accounts) {
                     from: addr1,
                 },
             );
+            const signature1 = signOrder(sentOrder1, Number(this.chainId), this.swap.address, addr1Wallet.getPrivateKey());
 
-            await this.swap.fillOrderNFTnoSwap(sentOrder, signature, '0x',{ from: addr0 });
+            await this.swap.fillOrderNFTnoSwap(sentOrder1, signature1, '0x',{ from: addr0 });
             
-            console.log(addr0,'weth balance (post-trade):',  Number(await this.weth.balanceOf(addr0)))
-            console.log(addr1,'weth balance (post-trade):', Number(await this.weth.balanceOf(addr1)))
+            console.log(addr0,'weth balance (post-trade1):',  Number(await this.weth.balanceOf(addr0)))
+            console.log(addr1,'weth balance (post-trade1):', Number(await this.weth.balanceOf(addr1)))
 
-            console.log(addr0,'NFT balance (post-trade):', Number(await this.collection.balanceOf(addr0)))
-            console.log(addr1,'NFT balance (post-trade):', Number(await this.collection.balanceOf(addr1)))
+            console.log(addr0,'NFT balance (post-trade1):', Number(await this.collection.balanceOf(addr0)))
+            console.log(addr1,'NFT balance (post-trade1):', Number(await this.collection.balanceOf(addr1)))
+
+
+            console.log('create NFT limit buy order. Buy it back for a loss ');
+
+        /* approve NFT, again*/
+        await this.collection.approve(this.swap.address, 0, { from: addr0 })
+            const sentOrder2 = buildOrder(
+                {
+                    makerAsset: this.weth.address,
+                    takerAsset: this.collection.address,
+                    NFTID: 0,
+                    takingAmount: 3,
+                    from: addr1,
+                },
+            );
         });
+
+
     
     
 });

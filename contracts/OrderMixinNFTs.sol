@@ -25,7 +25,7 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
     using Callib for address;
     using SafeERC20 for IERC20;
     using ArgumentsDecoder for bytes;
-    using OrderLib for OrderLib.NFTOrder;
+    using OrderLib for OrderLib.NFTOrderGeneric;
 
     error UnknownOrder();
     error AccessDenied();
