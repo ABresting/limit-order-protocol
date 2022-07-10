@@ -4,7 +4,7 @@ const { EIP712Domain } = require('./eip712');
 
 const OrderRFQ = [
     { name: 'info', type: 'uint256' },
-    { name: 'NFTAddress', type: 'address' },
+    { name: 'makerAsset', type: 'address' },
     { name: 'takerAsset', type: 'address' },
     { name: 'maker', type: 'address' },
     { name: 'allowedSender', type: 'address' },
@@ -21,7 +21,7 @@ const ABIOrderRFQ = {
 
 const Order = [
     { name: 'salt', type: 'uint256' },
-    { name: 'NFTAddress', type: 'address' },
+    { name: 'makerAsset', type: 'address' },
     { name: 'takerAsset', type: 'address' },
     { name: 'maker', type: 'address' },
     { name: 'receiver', type: 'address' },
@@ -44,7 +44,7 @@ const version = '3';
 
 function buildOrder (
     {
-        NFTAddress,
+        makerAsset,
         takerAsset,
         NFTID,
         takingAmount,
@@ -89,7 +89,7 @@ function buildOrder (
 
     return {
         salt: '1',
-        NFTAddress,
+        makerAsset,
         takerAsset,
         maker,
         receiver,
@@ -103,7 +103,7 @@ function buildOrder (
 
 function buildOrderRFQ (
     info,
-    NFTAddress,
+    makerAsset,
     takerAsset,
     NFTID,
     takingAmount,
@@ -112,7 +112,7 @@ function buildOrderRFQ (
 ) {
     return {
         info,
-        NFTAddress,
+        makerAsset,
         takerAsset,
         maker: from,
         allowedSender,

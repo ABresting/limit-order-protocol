@@ -58,7 +58,7 @@ contract('LOP', async function (accounts) {
 
         const order = buildOrder(
                 {
-                    NFTAddress: this.collection.address,
+                    makerAsset: this.collection.address,
                     takerAsset: this.weth.address,
                     NFTID: 0,
                     takingAmount: 1,
@@ -68,7 +68,7 @@ contract('LOP', async function (accounts) {
             const signature = signOrder(order, Number(this.chainId), this.swap.address, addr1Wallet.getPrivateKey());
             const sentOrder = buildOrder(
                 {
-                    NFTAddress: this.collection.address,
+                    makerAsset: this.collection.address,
                     takerAsset: this.weth.address,
                     NFTID: 0,
                     takingAmount: 2,

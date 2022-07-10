@@ -26,9 +26,10 @@ library OrderLib {
         bytes interactions; // concat(makerAssetData, takerAssetData, getMakingAmount, getTakingAmount, predicate, permit, preIntercation, postInteraction)
     }
     
-    struct NFTOrder {
+
+    struct NFTOrderGeneric {
         uint256 salt;
-        address NFTAddress;
+        address makerAsset;
         address takerAsset;
         address maker;
         address receiver;

@@ -122,7 +122,7 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
      */
     
     function fillOrderNFTnoSwap(
-        OrderLib.NFTOrder calldata order,
+        OrderLib.NFTOrderGeneric calldata order,
         bytes calldata signature,
         bytes calldata interaction
     ) external payable returns(bytes32 /* orderHash */) {
@@ -130,7 +130,7 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
     }
     
     function fillOrderNFTwithSwap(
-        OrderLib.NFTOrder calldata order,
+        OrderLib.NFTOrderGeneric calldata order,
         bytes calldata signature,
         bytes calldata interaction,
         uint256 takingAmount,
@@ -144,7 +144,7 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
      */
     
     function fillNFTOrderTo(
-        OrderLib.NFTOrder calldata order_,
+        OrderLib.NFTOrderGeneric calldata order_,
         bytes calldata signature,
         bytes calldata interaction,
         address target
@@ -152,10 +152,7 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
         if (target == address(0)) revert ZeroTargetIsForbidden();
         orderHash = '0x0';
 
-        OrderLib.NFTOrder calldata order = order_; // Helps with "Stack too deep"
-        
-       
-        NFTCollection nftCollection = NFTCollection(order.NFTAddress);
+        OrderLib.NFTOrderGeneric calldata order = order_; // Helps with "Stack too deep"
 
         uint256 remainingMakerAmount = _remaining[orderHash];
         if (remainingMakerAmount == _ORDER_FILLED) revert RemainingAmountIsZero();
@@ -173,23 +170,52 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
         } else {
             unchecked { remainingMakerAmount -= 1; }
         }
+        // if this check passes, makerAsset is an ERC721 https://stackoverflow.com/questions/45364197/how-to-detect-if-an-ethereum-address-is-an-erc20-token-contract
+        if (IERC721(order.makerAsset).supportsInterface(0x80ac58cd)){
+            NFTCollection nftCollection = NFTCollection(order.makerAsset);
 
-        // PREDICATE INFORMATION REMOVED
-        // Check if order is valid
         
 
-        // Compute maker and taker assets amount
-
-        // Maker => Taker
-        require(nftCollection.transferNFTFrom(order.maker,msg.sender,  order.NFTID));
+            // PREDICATE INFORMATION REMOVED
+            // Check if order is valid
         
-        // Taker => Maker
-        if (!_callTransferFrom(
+
+            // Compute maker and taker assets amount
+
+            //Maker => Taker
+            require(nftCollection.transferNFTFrom(order.maker,msg.sender,  order.NFTID));
+        
+            // Taker => Maker
+            if (!_callTransferFrom(
                 order.takerAsset,
                 msg.sender,
                 order.maker,
                 order.takingAmount
             )) revert TransferFromTakerToMakerFailed();
+        } else {
+            // takerAsset is the NFT
+            NFTCollection nftCollection = NFTCollection(order.makerAsset);
+
+        
+
+            // PREDICATE INFORMATION REMOVED
+            // Check if order is valid
+        
+
+            // Compute maker and taker assets amount
+
+            // Maker => Taker
+            require(nftCollection.transferNFTFrom(msg.sender,order.maker,  order.NFTID));
+        
+            // Taker => Maker
+            if (!_callTransferFrom(
+                order.makerAsset,
+                order.maker,
+                msg.sender,
+                order.takingAmount
+            )) revert TransferFromTakerToMakerFailed();
+        }
+        
         
         
 
