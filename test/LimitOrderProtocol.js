@@ -169,7 +169,7 @@ contract('LOP', async function (accounts) {
                 await this.weth.deposit({ from: addr0, value: '1000000' });
             }
 
-            await this.swap.fillOrderNFTnoSwap(sentOrder1, signature1, '0x',{ from: addr0 });
+            await this.swap.fillOrderNFTnoSwap(false,sentOrder1, signature1, '0x',{ from: addr0 });
             
             console.log(addr0,'weth balance (post-trade1):',  Number(await this.weth.balanceOf(addr0)))
             console.log(addr1,'weth balance (post-trade1):', Number(await this.weth.balanceOf(addr1)))
