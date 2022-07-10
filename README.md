@@ -3,6 +3,13 @@
     <img src="https://github.com/1inch/limit-order-protocol/blob/master/.github/1inch_github_b.svg#gh-dark-mode-only">
 </div>
 
+# This repository extends the 1inch capability to support the on-chain NFT aggration and market place. We are Supernova  and Our core contributions are:
+
+* OrderMixinNFTs: This extends the capability of 1inch LOP to support the NFT objects and let them be on the active orders queue for agents to execute their orders. Seamlessly integrates with the existing 1inch tools such as on-chain Swap.
+* Auctions: A new smart contract enables an auction of NFTs such that a seller posts the artwork and takes bids. Eventually, the bids can be executed by the seller based on suitable criteria such as price.
+* NFT collection: To let anyone with a front end to integrate the demonstrable UI while using the on-chain proofs of execution. 1inch API can provide the queue of collected buy and sell orders.
+
+
 # 1inch Limit Order Protocol Smart Contract
 
 [![Build Status](https://github.com/1inch/limit-order-protocol/workflows/CI/badge.svg)](https://github.com/1inch/limit-order-protocol/actions)
