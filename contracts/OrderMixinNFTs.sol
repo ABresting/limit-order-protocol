@@ -122,21 +122,23 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
      */
     
     function fillOrderNFTnoSwap(
+        bool isLimitOrderBuyingNFT,
         OrderLib.NFTOrderGeneric calldata order,
         bytes calldata signature,
         bytes calldata interaction
     ) external payable returns(bytes32 /* orderHash */) {
-        return fillNFTOrderTo(order, signature, interaction, msg.sender);
+        return fillNFTOrderTo(isLimitOrderBuyingNFT, order, signature, interaction, msg.sender);
     }
     
     function fillOrderNFTwithSwap(
+        bool isLimitOrderBuyingNFT,
         OrderLib.NFTOrderGeneric calldata order,
         bytes calldata signature,
         bytes calldata interaction,
         uint256 takingAmount,
         uint256 thresholdAmount
     ) external payable returns(bytes32 /* orderHash */) {
-        return fillNFTOrderTo(order, signature, interaction, msg.sender);
+        return fillNFTOrderTo(isLimitOrderBuyingNFT, order, signature, interaction, msg.sender);
     }
 
     /**
@@ -144,6 +146,7 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
      */
     
     function fillNFTOrderTo(
+        bool isLimitOrderBuyingNFT,
         OrderLib.NFTOrderGeneric calldata order_,
         bytes calldata signature,
         bytes calldata interaction,
@@ -171,7 +174,9 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
             unchecked { remainingMakerAmount -= 1; }
         }
         // if this check passes, makerAsset is an ERC721 https://stackoverflow.com/questions/45364197/how-to-detect-if-an-ethereum-address-is-an-erc20-token-contract
-        if (IERC721(order.makerAsset).supportsInterface(0x80ac58cd)){
+        // IERC721(order.makerAsset).supportsInterface(0x80ac58cd)
+        
+        if (!isLimitOrderBuyingNFT){
             NFTCollection nftCollection = NFTCollection(order.makerAsset);
 
         
@@ -194,7 +199,7 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
             )) revert TransferFromTakerToMakerFailed();
         } else {
             // takerAsset is the NFT
-            NFTCollection nftCollection = NFTCollection(order.makerAsset);
+            NFTCollection nftCollection = NFTCollection(order.takerAsset);
 
         
 
@@ -203,10 +208,6 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
         
 
             // Compute maker and taker assets amount
-
-            // Maker => Taker
-            require(nftCollection.transferNFTFrom(msg.sender,order.maker,  order.NFTID));
-        
             // Taker => Maker
             if (!_callTransferFrom(
                 order.makerAsset,
@@ -214,6 +215,11 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
                 msg.sender,
                 order.takingAmount
             )) revert TransferFromTakerToMakerFailed();
+
+            // Maker => Taker
+            require(nftCollection.transferNFTFrom(msg.sender,order.maker,  order.NFTID));
+        
+            
         }
         
         
@@ -233,18 +239,8 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
 
 
     function _callTransferFrom(address asset, address from, address to, uint256 amount) private returns(bool success) {
-        bytes4 selector = IERC20.transferFrom.selector;
-        /// @solidity memory-safe-assembly
-        assembly { // solhint-disable-line no-inline-assembly
-            let data := mload(0x40)
-
-            mstore(data, selector)
-            mstore(add(data, 0x04), from)
-            mstore(add(data, 0x24), to)
-            mstore(add(data, 0x44), amount)
-            let status := call(gas(), asset, 0, data, 100, 0x0, 0x20)
-            success := and(status, or(iszero(returndatasize()), and(gt(returndatasize(), 31), eq(mload(0), 1))))
-        }
+        SafeERC20.safeTransferFrom(IERC20(asset), from, to, amount);
+        return true;
     }
 
 
