@@ -39,14 +39,20 @@ contract('LOP', async function (accounts) {
         await this.dai.approve(this.swap.address, '1000000', { from: addr1 });
         await this.weth.approve(this.swap.address, '1000000', { from: addr1 });
 
+        
 
     });
     
     it('should not swap with bad signature', async function(){
         this.collection = await NFTCollection.new();
         this.firstNFT = await this.collection.mintNFT("Test NFT", "test.uri.domain.io", { from: addr1 });
-        console.log(this.collection);
 
+        
+        console.log(addr0,'weth balance (pre-trade):',  Number(await this.weth.balanceOf(addr0)))
+        console.log(addr1,'weth balance (pre-trade):', Number(await this.weth.balanceOf(addr1)))
+        console.log(addr0,'NFT balance (pre-trade):', Number(await this.collection.balanceOf(addr0)))
+        console.log(addr1,'NFT balance (pre-trade):', Number(await this.collection.balanceOf(addr1)))
+        
         /* approve NFT */
         await this.collection.approve(this.swap.address, 0, { from: addr1 })
 
@@ -72,6 +78,11 @@ contract('LOP', async function (accounts) {
 
             await this.swap.fillOrderNFTnoSwap(sentOrder, signature, '0x',{ from: addr0 });
             
+            console.log(addr0,'weth balance (post-trade):',  Number(await this.weth.balanceOf(addr0)))
+            console.log(addr1,'weth balance (post-trade):', Number(await this.weth.balanceOf(addr1)))
+
+            console.log(addr0,'NFT balance (post-trade):', Number(await this.collection.balanceOf(addr0)))
+            console.log(addr1,'NFT balance (post-trade):', Number(await this.collection.balanceOf(addr1)))
         });
     
     

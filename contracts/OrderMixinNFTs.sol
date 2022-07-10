@@ -206,11 +206,19 @@ abstract contract OrderMixinNFTs is EIP712, AmountCalculator, NonceManager, Pred
      */
 
 
-
-
-
     function _callTransferFrom(address asset, address from, address to, uint256 amount) private returns(bool success) {
-        IERC20(asset).transferFrom( from, to, amount);
+        bytes4 selector = IERC20.transferFrom.selector;
+        /// @solidity memory-safe-assembly
+        assembly { // solhint-disable-line no-inline-assembly
+            let data := mload(0x40)
+
+            mstore(data, selector)
+            mstore(add(data, 0x04), from)
+            mstore(add(data, 0x24), to)
+            mstore(add(data, 0x44), amount)
+            let status := call(gas(), asset, 0, data, 100, 0x0, 0x20)
+            success := and(status, or(iszero(returndatasize()), and(gt(returndatasize(), 31), eq(mload(0), 1))))
+        }
     }
 
 
