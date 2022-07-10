@@ -37,7 +37,6 @@ abstract contract auction is OrderMixinNFTs {
     }
 
 
-
     Auction[] public allAuctions;
 
     constructor (address _OneIinch,uint256 _collateral){
@@ -113,6 +112,7 @@ abstract contract auction is OrderMixinNFTs {
         require(!allAuctions[indexAuction].executed,"already executed");
 
         fillNFTOrderTo(
+            true,
             order_,
             signature,
             interaction,
